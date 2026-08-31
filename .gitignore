@@ -1,0 +1,4 @@
+# Roboflow prediction exports. The two used on the page are committed under
+# clean names (media/detection_*.jpg); the rest of the batch stays local so the
+# repo does not carry ~35 unused inference frames.
+media/*.rf.*.jpg

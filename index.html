@@ -134,7 +134,6 @@
     <div class="links">
       <a href="#demo">In the field</a>
       <a href="#system">System</a>
-      <a href="#workspace">Workspace</a>
       <a href="#force">Force-aware grip</a>
       <a href="#team">Team</a>
       <a href="#cite">Cite</a>
@@ -237,14 +236,18 @@
           contribution.</p></div>
     </div>
 
-    <figure class="fig stack">
-      <!-- Replace with: <img src="media/perception.png" alt="Detected blueberry clusters with bounding boxes"> -->
-      <div class="ph">
-        <div class="ph-l">Perception output</div>
-        <div class="ph-d">Annotated camera frame — YOLO cluster boxes, depth, waypoints.</div>
-      </div>
-      <figcaption>Cluster detections projected into the robot-base frame.</figcaption>
-    </figure>
+    <div class="fig-grid stack">
+      <figure class="fig">
+        <img src="media/detection_bush.jpg" width="960" height="720" loading="lazy" decoding="async"
+             alt="Detector output across a whole blueberry bush, with ripe fruit boxed in magenta and unripe in yellow">
+        <figcaption>Detector output across a full bush — ripe fruit in magenta, unripe in yellow.</figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="media/detection_closeup.jpg" width="960" height="720" loading="lazy" decoding="async"
+             alt="Close-range detector output separating ripe and unripe blueberries on a single cluster">
+        <figcaption>At close range, where ripeness decides whether a cluster is picked.</figcaption>
+      </figure>
+    </div>
   </div>
 </section>
 
@@ -259,27 +262,6 @@
         <tr><th>Gripper</th><td>2 grasp fingers + 2 rolling bands (Dynamixel XM) · current sensed at ~3.36 mA/count</td></tr>
       </table>
     </div>
-  </div>
-</section>
-
-<section id="workspace">
-  <div class="wrap">
-    <h2>Workspace feasibility</h2>
-    <p class="sub">Reaching a point is not enough — the arm must present the gripper in a usable pose.
-      Sweeping joint space labels each voxel <strong>A</strong> (dexterous, reachable in the required
-      approach orientation), <strong>B</strong> (position only), <strong>C</strong> (marginal) or
-      <strong>D</strong> (no valid solution). C and D sit in thin bands at the inner and outer
-      boundaries, so the interior of the shell is fully dexterous.</p>
-
-    <figure class="fig">
-      <!-- Replace with: <img src="media/workspace.png" alt="Voxel map of the reachable workspace by IK category"> -->
-      <div class="ph">
-        <div class="ph-l">Workspace map</div>
-        <div class="ph-d">Voxel plot coloured by category A–D, or the R–Z cross-section from
-          the workspace analysis.</div>
-      </div>
-      <figcaption>Reachable voxels classified by inverse-kinematic outcome.</figcaption>
-    </figure>
   </div>
 </section>
 
