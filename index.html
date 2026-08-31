@@ -96,11 +96,19 @@
      Delete any .fig you do not end up filling. */
   figure.fig{margin:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
   figure.fig img,figure.fig video{display:block;width:100%;height:auto}
+  /* .frame gives a photo a fixed display height so mixed portrait/landscape
+     shots line up in a grid; contain never crops, the card colour letterboxes. */
+  figure.fig.frame img{height:460px;object-fit:contain;background:var(--card)}
+  @media(max-width:820px){figure.fig.frame img{height:300px}}
+  /* .band crops a full-width landscape photo to a cinematic strip; the
+     object-position bias keeps the subject rather than the sky. */
+  figure.fig.band img{aspect-ratio:16/9;object-fit:cover;object-position:center bottom}
+  /* .narrow keeps a lone portrait photo from letterboxing across the full column. */
+  figure.fig.narrow{max-width:460px;margin-left:auto;margin-right:auto}
   figure.fig figcaption{font-size:13px;color:var(--muted);padding:11px 14px;border-top:1px solid var(--line)}
   .ph{aspect-ratio:16/9;display:grid;place-items:center;gap:6px;text-align:center;padding:20px;
     background:repeating-linear-gradient(45deg,transparent,transparent 9px,
       color-mix(in srgb,var(--line) 55%,transparent) 9px,color-mix(in srgb,var(--line) 55%,transparent) 10px)}
-  .ph.tall{aspect-ratio:4/3}
   .ph .ph-l{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
   .ph .ph-d{font-size:13.5px;color:var(--muted);max-width:44ch}
   .fig-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -124,10 +132,11 @@
   <div class="wrap">
     <span class="brand">🫐 Blueberry Harvester</span>
     <div class="links">
-      <a href="#demo">Demo</a>
+      <a href="#demo">In the field</a>
       <a href="#system">System</a>
       <a href="#workspace">Workspace</a>
       <a href="#force">Force-aware grip</a>
+      <a href="#team">Team</a>
       <a href="#cite">Cite</a>
       <button class="toggle" id="themeBtn" aria-label="Toggle theme">◐ Theme</button>
     </div>
@@ -187,17 +196,26 @@
 
 <section id="demo">
   <div class="wrap">
-    <h2>Harvest in action</h2>
-    <p class="sub">Scan, approach, grasp, detach — the full loop running on the physical rig.</p>
-    <figure class="fig">
-      <!-- Replace with: <video src="media/demo.mp4" controls muted loop playsinline poster="media/demo-poster.jpg"></video> -->
-      <div class="ph">
-        <div class="ph-l">Demo video</div>
-        <div class="ph-d">Wide 16:9 clip of a complete harvest cycle. An animated GIF or a
-          poster-framed MP4 both work here.</div>
-      </div>
-      <figcaption>A full harvest cycle, from cluster detection to detachment.</figcaption>
-    </figure>
+    <h2>In the field</h2>
+    <p class="sub">The platform deployed on a commercial blueberry row — a tracked mobile base
+      carrying the arm, the perception stack, and a collection bag.</p>
+    <div class="fig-grid">
+      <figure class="fig frame">
+        <img src="media/infield_hardware.jpg" width="1200" height="1600" loading="lazy" decoding="async"
+             alt="The harvesting robot on a tracked base beside a blueberry bush, arm extended with a white collection bag">
+        <figcaption>The harvester working a commercial blueberry row, arm extended with the
+          collection bag deployed.</figcaption>
+      </figure>
+      <figure class="fig">
+        <!-- Replace with: <video src="media/demo.mp4" controls muted loop playsinline poster="media/demo-poster.jpg"></video> -->
+        <div class="ph">
+          <div class="ph-l">Demo video</div>
+          <div class="ph-d">Wide 16:9 clip of a complete harvest cycle. An animated GIF or a
+            poster-framed MP4 both work here.</div>
+        </div>
+        <figcaption>A full harvest cycle, from cluster detection to detachment.</figcaption>
+      </figure>
+    </div>
   </div>
 </section>
 
@@ -219,39 +237,26 @@
           contribution.</p></div>
     </div>
 
-    <div class="fig-grid stack">
-      <figure class="fig">
-        <!-- Replace with: <img src="media/perception.png" alt="Detected blueberry clusters with bounding boxes"> -->
-        <div class="ph tall">
-          <div class="ph-l">Perception output</div>
-          <div class="ph-d">Annotated camera frame — YOLO cluster boxes, depth, waypoints.</div>
-        </div>
-        <figcaption>Cluster detections projected into the robot-base frame.</figcaption>
-      </figure>
-      <figure class="fig">
-        <!-- Replace with: <img src="media/rig.jpg" alt="The harvesting arm and gripper on the test rig"> -->
-        <div class="ph tall">
-          <div class="ph-l">Hardware</div>
-          <div class="ph-d">Photo of the arm and rolling gripper on the rig or in the field.</div>
-        </div>
-        <figcaption>The 6-DOF arm and rolling gripper.</figcaption>
-      </figure>
-    </div>
+    <figure class="fig stack">
+      <!-- Replace with: <img src="media/perception.png" alt="Detected blueberry clusters with bounding boxes"> -->
+      <div class="ph">
+        <div class="ph-l">Perception output</div>
+        <div class="ph-d">Annotated camera frame — YOLO cluster boxes, depth, waypoints.</div>
+      </div>
+      <figcaption>Cluster detections projected into the robot-base frame.</figcaption>
+    </figure>
   </div>
 </section>
 
 <section id="system">
   <div class="wrap">
     <h2>System at a glance</h2>
-    <p class="sub">Key hardware and software specifications, as configured in the control pipeline.</p>
+    <p class="sub">The hardware, as configured in the control pipeline.</p>
     <div class="table-wrap">
       <table>
-        <tr><th>Arm</th><td>RRP arm (pitch · yaw · prismatic) + wrist (yaw · pitch · roll); bounded least-squares IK</td></tr>
-        <tr><th>Global camera</th><td>Stereolabs ZED · HD1080 @ 30 fps · <code>DEPTH_MODE.ULTRA</code> · ArUco extrinsic</td></tr>
-        <tr><th>In-hand camera</th><td>Intel RealSense · 640×480 color + depth @ 30 fps · depth-to-color aligned</td></tr>
+        <tr><th>Arm</th><td>RRP arm (pitch · yaw · prismatic) + wrist (yaw · pitch · roll)</td></tr>
+        <tr><th>Cameras</th><td>Stereolabs ZED global (HD1080) · Intel RealSense in-hand (640×480 + depth)</td></tr>
         <tr><th>Gripper</th><td>2 grasp fingers + 2 rolling bands (Dynamixel XM) · current sensed at ~3.36 mA/count</td></tr>
-        <tr><th>Workspace</th><td>155° sweep · 270–1565 mm above base · inner arc r ≈ 937 mm · ≈ 1440 L</td></tr>
-        <tr><th>Software</th><td>Python · NumPy/SciPy · OpenCV · Ultralytics YOLO · pyzed / pyrealsense2 · Dynamixel SDK</td></tr>
       </table>
     </div>
   </div>
@@ -261,8 +266,10 @@
   <div class="wrap">
     <h2>Workspace feasibility</h2>
     <p class="sub">Reaching a point is not enough — the arm must present the gripper in a usable pose.
-      Sweeping joint space on a grid labels each voxel by its best inverse-kinematic outcome, separating
-      the dexterous region from merely position-reachable space.</p>
+      Sweeping joint space labels each voxel <strong>A</strong> (dexterous, reachable in the required
+      approach orientation), <strong>B</strong> (position only), <strong>C</strong> (marginal) or
+      <strong>D</strong> (no valid solution). C and D sit in thin bands at the inner and outer
+      boundaries, so the interior of the shell is fully dexterous.</p>
 
     <figure class="fig">
       <!-- Replace with: <img src="media/workspace.png" alt="Voxel map of the reachable workspace by IK category"> -->
@@ -273,18 +280,6 @@
       </div>
       <figcaption>Reachable voxels classified by inverse-kinematic outcome.</figcaption>
     </figure>
-
-    <div class="cards stack">
-      <div class="card"><h3 style="color:var(--shell)">A · Dexterous</h3>
-        <p>Reachable <em>with</em> the radial approach orientation required for grasping.</p></div>
-      <div class="card"><h3>B · Position only</h3>
-        <p>Reachable in position (within 5 mm) but not in the required orientation.</p></div>
-      <div class="card"><h3>C · Marginal</h3>
-        <p>Residual position error up to 20 mm — near the boundary of the shell.</p></div>
-    </div>
-    <p class="note">Category D — forward-kinematically reachable but with no valid inverse solution —
-      together with C is confined to the thin inner/outer boundaries of the annular shell, so the
-      interior of the workspace is fully dexterous.</p>
   </div>
 </section>
 
@@ -294,6 +289,14 @@
     <p class="sub">Delicate fruit bruises under low force. Rather than adding a tactile sensor, the gripper
       infers contact force from Dynamixel motor current — taking that from binary <em>contact detection</em>
       to calibrated, regulated <em>force control</em>.</p>
+
+    <figure class="fig band" style="margin-bottom:24px">
+      <img src="media/closedup_gripper.jpg" width="1600" height="1200" loading="lazy" decoding="async"
+           alt="Close-up of the rolling gripper end-effector showing the grasp fingers, rolling bands and Dynamixel servos">
+      <figcaption>The end-effector up close: two grasp fingers, two driven rolling bands, and the
+        Dynamixel servos whose present-current reading stands in for a force sensor.</figcaption>
+    </figure>
+
     <div class="steps">
       <div class="step"><div class="k">01 · MEASURE</div><h4>Ground-truth force</h4>
         <p>Ramp closure against a force sensor; log current vs. force, up and down for hysteresis.</p></div>
@@ -304,25 +307,19 @@
       <div class="step"><div class="k">04 · COMPARE</div><h4>Bruise-risk metrics</h4>
         <p>Overshoot, settling time and time-above-bruise vs. the threshold controller.</p></div>
     </div>
+  </div>
+</section>
 
-    <div class="fig-grid stack">
-      <figure class="fig">
-        <!-- Replace with: <img src="media/calibration.png" alt="Motor current versus measured contact force"> -->
-        <div class="ph tall">
-          <div class="ph-l">Calibration curve</div>
-          <div class="ph-d">Current vs. force with the fitted line and hysteresis band.</div>
-        </div>
-        <figcaption>Motor current mapped to contact force, per finger and band.</figcaption>
-      </figure>
-      <figure class="fig">
-        <!-- Replace with: <img src="media/regulation.png" alt="Force regulation step response over time"> -->
-        <div class="ph tall">
-          <div class="ph-l">Regulation trace</div>
-          <div class="ph-d">Force vs. time against setpoint, versus the threshold controller.</div>
-        </div>
-        <figcaption>Closed-loop regulation to a gentle force setpoint.</figcaption>
-      </figure>
-    </div>
+<section id="team">
+  <div class="wrap">
+    <h2>Team</h2>
+    <p class="sub">Built and field-tested by the project team.
+      <span class="todo">TODO: add names, roles, and lab/affiliation.</span></p>
+    <figure class="fig narrow">
+      <img src="media/founders_hardware.jpg" width="1200" height="1600" loading="lazy" decoding="async"
+           alt="Two members of the project team standing beside the harvesting robot in a blueberry field">
+      <figcaption><span class="todo">TODO: name the team members shown here.</span></figcaption>
+    </figure>
   </div>
 </section>
 
