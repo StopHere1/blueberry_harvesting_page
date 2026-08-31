@@ -9,17 +9,15 @@
   :root{
     --bg:#ffffff; --fg:#1a1d1f; --muted:#5b6266; --line:#e6e8ea;
     --card:#f7f8f9; --accent:#1f8f6f; --accent-2:#2f6fed; --code:#0f172a; --code-fg:#e2e8f0;
-    --berry:#4b3b7a; --shell:#1f8f6f;
   }
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#0f1417; --fg:#e8ebed; --muted:#9aa4aa; --line:#1e262b;
       --card:#151b1f; --accent:#3fbf98; --accent-2:#6ea0ff; --code:#0a0f14; --code-fg:#d7e0ea;
-      --berry:#a58cff; --shell:#3fbf98;
     }
   }
-  :root[data-theme="light"]{--bg:#ffffff;--fg:#1a1d1f;--muted:#5b6266;--line:#e6e8ea;--card:#f7f8f9;--accent:#1f8f6f;--accent-2:#2f6fed;--code:#0f172a;--code-fg:#e2e8f0;--berry:#4b3b7a;--shell:#1f8f6f;}
-  :root[data-theme="dark"]{--bg:#0f1417;--fg:#e8ebed;--muted:#9aa4aa;--line:#1e262b;--card:#151b1f;--accent:#3fbf98;--accent-2:#6ea0ff;--code:#0a0f14;--code-fg:#d7e0ea;--berry:#a58cff;--shell:#3fbf98;}
+  :root[data-theme="light"]{--bg:#ffffff;--fg:#1a1d1f;--muted:#5b6266;--line:#e6e8ea;--card:#f7f8f9;--accent:#1f8f6f;--accent-2:#2f6fed;--code:#0f172a;--code-fg:#e2e8f0;}
+  :root[data-theme="dark"]{--bg:#0f1417;--fg:#e8ebed;--muted:#9aa4aa;--line:#1e262b;--card:#151b1f;--accent:#3fbf98;--accent-2:#6ea0ff;--code:#0a0f14;--code-fg:#d7e0ea;}
 
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
@@ -41,12 +39,11 @@
   nav .links a:hover{color:var(--fg);text-decoration:none}
 
   /* hero */
-  header.hero{padding:64px 0 40px;border-bottom:1px solid var(--line)}
-  .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center}
-  @media(max-width:820px){.hero-grid{grid-template-columns:1fr}}
+  header.hero{padding:92px 0 56px;border-bottom:1px solid var(--line)}
+  @media(max-width:820px){header.hero{padding:56px 0 40px}}
   .eyebrow{color:var(--accent);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.08em}
-  h1{font-size:clamp(30px,5vw,46px);line-height:1.1;margin:.3em 0 .35em;letter-spacing:-.02em}
-  .lede{font-size:18px;color:var(--muted);margin:0 0 24px}
+  h1{font-size:clamp(32px,6vw,54px);line-height:1.08;margin:.28em 0 .3em;letter-spacing:-.025em}
+  .lede{font-size:19px;color:var(--muted);margin:0 0 28px;max-width:56ch}
   .btns{display:flex;gap:12px;flex-wrap:wrap}
   .btn{display:inline-block;padding:10px 18px;border-radius:10px;font-weight:600;font-size:14px;border:1px solid var(--line)}
   .btn.primary{background:var(--accent);color:#fff;border-color:transparent}
@@ -55,8 +52,8 @@
   .btn.ghost:hover{border-color:var(--accent);text-decoration:none}
 
   /* stat row */
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:36px 0 0}
-  @media(max-width:820px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:44px 0 0}
+  @media(max-width:820px){.stats{grid-template-columns:1fr}}
   .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
   .stat .n{font-size:24px;font-weight:700;letter-spacing:-.01em}
   .stat .l{font-size:12.5px;color:var(--muted);margin-top:2px}
@@ -115,6 +112,11 @@
   @media(max-width:820px){.fig-grid{grid-template-columns:1fr}}
   .stack{margin-top:24px}
 
+  /* team roster */
+  ul.people{list-style:none;display:flex;flex-wrap:wrap;gap:10px;padding:0;margin:0}
+  ul.people li{background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:7px 16px;font-size:14.5px;font-weight:600}
+
   footer{padding:40px 0 60px;color:var(--muted);font-size:14px}
   .todo{color:#c26a00}
   :root[data-theme="dark"] .todo,@media(prefers-color-scheme:dark){.todo{color:#e0a458}}
@@ -122,8 +124,6 @@
   /* theme toggle */
   .toggle{cursor:pointer;background:transparent;border:1px solid var(--line);color:var(--muted);
     border-radius:8px;padding:5px 10px;font-size:13px}
-  svg .berry{fill:var(--berry)}
-  svg .shell{stroke:var(--shell)}
 </style>
 </head>
 <body>
@@ -144,50 +144,19 @@
 
 <header class="hero">
   <div class="wrap">
-    <div class="hero-grid">
-      <div>
-        <div class="eyebrow">Agricultural robotics · perception + control</div>
-        <h1>Autonomous Blueberry Harvester</h1>
-        <p class="lede">A 6-DOF harvesting arm with a <strong>current-based, force-aware rolling gripper</strong>
-          that locates, approaches, and gently detaches ripe blueberry clusters.</p>
-        <div class="btns">
-          <a class="btn primary" href="https://github.com/StopHere1/autonomous_blueberry_harvester">View on GitHub</a>
-          <a class="btn ghost" href="#force">The gripper</a>
-          <a class="btn ghost" href="#cite">Cite</a>
-        </div>
-      </div>
-      <div aria-hidden="true">
-        <!-- Stylized annular reachable-shell (R–Z) schematic -->
-        <svg viewBox="0 0 320 260" width="100%" role="img" aria-label="Reachable workspace shell schematic">
-          <defs>
-            <linearGradient id="sh" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="var(--shell)" stop-opacity=".22"/>
-              <stop offset="1" stop-color="var(--shell)" stop-opacity=".05"/>
-            </linearGradient>
-          </defs>
-          <!-- annular shell -->
-          <path d="M40,230 A190,190 0 0,1 230,40 L230,80 A150,150 0 0,0 80,230 Z"
-                fill="url(#sh)" class="shell" stroke-width="2"/>
-          <!-- inner & outer arcs -->
-          <path d="M80,230 A150,150 0 0,1 230,80" fill="none" class="shell" stroke-width="1.5" stroke-dasharray="4 4"/>
-          <path d="M40,230 A190,190 0 0,1 230,40" fill="none" class="shell" stroke-width="1.5"/>
-          <!-- base / pivot -->
-          <circle cx="40" cy="230" r="6" fill="var(--fg)"/>
-          <text x="48" y="248" font-size="11" fill="var(--muted)">shoulder pivot</text>
-          <!-- berries -->
-          <circle class="berry" cx="150" cy="120" r="6"/>
-          <circle class="berry" cx="168" cy="130" r="5"/>
-          <circle class="berry" cx="158" cy="108" r="4.5"/>
-          <text x="150" y="70" font-size="11" fill="var(--muted)">reachable shell</text>
-          <text x="235" y="150" font-size="11" fill="var(--muted)">r ≈ 937 mm</text>
-        </svg>
-      </div>
+    <div class="eyebrow">Agricultural robotics · perception + control</div>
+    <h1>Autonomous Blueberry Harvester</h1>
+    <p class="lede">A 6-DOF harvesting arm with a <strong>current-based, force-aware rolling gripper</strong>
+      that locates, approaches, and gently detaches ripe blueberry clusters.</p>
+    <div class="btns">
+      <a class="btn primary" href="https://github.com/StopHere1/autonomous_blueberry_harvester">View on GitHub</a>
+      <a class="btn ghost" href="#force">The gripper</a>
+      <a class="btn ghost" href="#cite">Cite</a>
     </div>
 
     <div class="stats">
       <div class="stat"><div class="n">6-DOF</div><div class="l">RRP arm + 3-DOF wrist (yaw · pitch · roll)</div></div>
-      <div class="stat"><div class="n">≈ 1440 L</div><div class="l">Reachable harvest-point volume</div></div>
-      <div class="stat"><div class="n">155°</div><div class="l">Azimuthal sweep · 270–1565 mm vertical</div></div>
+      <div class="stat"><div class="n">Global + in-hand</div><div class="l">ZED bush scan · RealSense visual servoing</div></div>
       <div class="stat"><div class="n">Force-aware</div><div class="l">Motor-current → contact-force grasping</div></div>
     </div>
   </div>
@@ -295,12 +264,18 @@
 <section id="team">
   <div class="wrap">
     <h2>Team</h2>
-    <p class="sub">Built and field-tested by the project team.
-      <span class="todo">TODO: add names, roles, and lab/affiliation.</span></p>
-    <figure class="fig narrow">
+    <p class="sub">The Wallace H. Coulter Department of Biomedical Engineering,
+      Georgia Institute of Technology.</p>
+    <ul class="people">
+      <li>Yixuan Xia</li>
+      <li>Yilin Cai</li>
+      <li>Samuel E. Wilcox</li>
+      <li>Yue Chen</li>
+    </ul>
+    <figure class="fig narrow stack">
       <img src="media/founders_hardware.jpg" width="1200" height="1600" loading="lazy" decoding="async"
            alt="Two members of the project team standing beside the harvesting robot in a blueberry field">
-      <figcaption><span class="todo">TODO: name the team members shown here.</span></figcaption>
+      <figcaption>Field testing at the research farm.</figcaption>
     </figure>
   </div>
 </section>
@@ -308,11 +283,11 @@
 <section id="cite">
   <div class="wrap">
     <h2>Citation</h2>
-    <p class="sub">If you use this work, please cite it. <span class="todo">Replace the placeholders below with
-      your paper's real title, authors, venue, and year.</span></p>
+    <p class="sub">If you use this work, please cite it. <span class="todo">TODO: confirm the final
+      title, venue, and year.</span></p>
 <pre style="background:var(--code);color:var(--code-fg);border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:13.5px;line-height:1.55">@misc{blueberry_harvester,
   title  = {<span class="todo">Autonomous Blueberry Harvesting with a Force-Aware Rolling Gripper</span>},
-  author = {<span class="todo">Author, A. and Coauthor, B.</span>},
+  author = {Xia, Yixuan and Cai, Yilin and Wilcox, Samuel E. and Chen, Yue},
   year   = {<span class="todo">2026</span>},
   note   = {https://github.com/StopHere1/autonomous_blueberry_harvester}
 }</pre>
@@ -324,7 +299,9 @@
 <footer>
   <div class="wrap">
     <p>Autonomous Blueberry Harvester · perception, 6-DOF control, and force-aware grasping.<br>
-      <span class="todo">TODO: add authors, lab/affiliation, paper/arXiv link, and a demo video.</span></p>
+      Yixuan Xia · Yilin Cai · Samuel E. Wilcox · Yue Chen — The Wallace H. Coulter Department of
+      Biomedical Engineering, Georgia Institute of Technology.<br>
+      <span class="todo">TODO: add the paper/arXiv link and a demo video.</span></p>
   </div>
 </footer>
 
