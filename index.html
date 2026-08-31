@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autonomous Blueberry Harvester</title>
+<meta name="description" content="A 6-DOF harvesting arm with a current-based, force-aware rolling gripper and a vision-guided perception pipeline for selectively harvesting blueberry clusters.">
+<style>
+  :root{
+    --bg:#ffffff; --fg:#1a1d1f; --muted:#5b6266; --line:#e6e8ea;
+    --card:#f7f8f9; --accent:#1f8f6f; --accent-2:#2f6fed; --code:#0f172a; --code-fg:#e2e8f0;
+    --berry:#4b3b7a; --shell:#1f8f6f;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1417; --fg:#e8ebed; --muted:#9aa4aa; --line:#1e262b;
+      --card:#151b1f; --accent:#3fbf98; --accent-2:#6ea0ff; --code:#0a0f14; --code-fg:#d7e0ea;
+      --berry:#a58cff; --shell:#3fbf98;
+    }
+  }
+  :root[data-theme="light"]{--bg:#ffffff;--fg:#1a1d1f;--muted:#5b6266;--line:#e6e8ea;--card:#f7f8f9;--accent:#1f8f6f;--accent-2:#2f6fed;--code:#0f172a;--code-fg:#e2e8f0;--berry:#4b3b7a;--shell:#1f8f6f;}
+  :root[data-theme="dark"]{--bg:#0f1417;--fg:#e8ebed;--muted:#9aa4aa;--line:#1e262b;--card:#151b1f;--accent:#3fbf98;--accent-2:#6ea0ff;--code:#0a0f14;--code-fg:#d7e0ea;--berry:#a58cff;--shell:#3fbf98;}
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+  code,pre{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);
+    background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;gap:20px;height:56px}
+  nav .brand{font-weight:700;letter-spacing:-.01em}
+  nav .links{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}
+  nav .links a{color:var(--muted);font-size:14px}
+  nav .links a:hover{color:var(--fg);text-decoration:none}
+
+  /* hero */
+  header.hero{padding:64px 0 40px;border-bottom:1px solid var(--line)}
+  .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr}}
+  .eyebrow{color:var(--accent);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.08em}
+  h1{font-size:clamp(30px,5vw,46px);line-height:1.1;margin:.3em 0 .35em;letter-spacing:-.02em}
+  .lede{font-size:18px;color:var(--muted);margin:0 0 24px}
+  .btns{display:flex;gap:12px;flex-wrap:wrap}
+  .btn{display:inline-block;padding:10px 18px;border-radius:10px;font-weight:600;font-size:14px;border:1px solid var(--line)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+  .btn.primary:hover{filter:brightness(1.06);text-decoration:none}
+  .btn.ghost{background:transparent;color:var(--fg)}
+  .btn.ghost:hover{border-color:var(--accent);text-decoration:none}
+
+  /* stat row */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:36px 0 0}
+  @media(max-width:820px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .stat .n{font-size:24px;font-weight:700;letter-spacing:-.01em}
+  .stat .l{font-size:12.5px;color:var(--muted);margin-top:2px}
+
+  section{padding:52px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:26px;letter-spacing:-.01em;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 26px;max-width:70ch}
+
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:820px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card h3{margin:.1em 0 .4em;font-size:16px}
+  .card p{margin:0;color:var(--muted);font-size:14.5px}
+  .tag{display:inline-block;font-size:11.5px;color:var(--accent);border:1px solid var(--line);
+    border-radius:999px;padding:2px 9px;margin-bottom:10px}
+
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;width:38%}
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+
+  /* pipeline steps */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media(max-width:820px){.steps{grid-template-columns:1fr 1fr}}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .step .k{font-size:12px;color:var(--accent);font-weight:700}
+  .step h4{margin:.35em 0 .3em;font-size:15px}
+  .step p{margin:0;color:var(--muted);font-size:13.5px}
+
+  pre{background:var(--code);color:var(--code-fg);border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:13.5px;line-height:1.55}
+  pre .c{color:#7c8a99}
+  .note{font-size:13.5px;color:var(--muted);background:var(--card);border:1px solid var(--line);
+    border-left:3px solid var(--accent);border-radius:8px;padding:12px 14px;margin-top:18px}
+
+  ul.repo{list-style:none;padding:0;margin:0;font-size:14.5px}
+  ul.repo li{padding:8px 0;border-bottom:1px solid var(--line);display:flex;gap:14px}
+  ul.repo li code{color:var(--accent-2);min-width:230px}
+  @media(max-width:620px){ul.repo li{flex-direction:column;gap:2px}ul.repo li code{min-width:0}}
+
+  footer{padding:40px 0 60px;color:var(--muted);font-size:14px}
+  .todo{color:#c26a00}
+  :root[data-theme="dark"] .todo,@media(prefers-color-scheme:dark){.todo{color:#e0a458}}
+
+  /* theme toggle */
+  .toggle{cursor:pointer;background:transparent;border:1px solid var(--line);color:var(--muted);
+    border-radius:8px;padding:5px 10px;font-size:13px}
+  svg .berry{fill:var(--berry)}
+  svg .shell{stroke:var(--shell)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="brand">🫐 Blueberry Harvester</span>
+    <div class="links">
+      <a href="#system">System</a>
+      <a href="#workspace">Workspace</a>
+      <a href="#force">Force-aware grip</a>
+      <a href="#toolkit">Toolkit</a>
+      <a href="#start">Get started</a>
+      <button class="toggle" id="themeBtn" aria-label="Toggle theme">◐ Theme</button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">Agricultural robotics · perception + control</div>
+        <h1>Autonomous Blueberry Harvester</h1>
+        <p class="lede">A 6-DOF harvesting arm with a <strong>current-based, force-aware rolling gripper</strong>
+          and a vision-guided perception pipeline that locates, approaches, and gently
+          detaches ripe blueberry clusters.</p>
+        <div class="btns">
+          <a class="btn primary" href="https://github.com/StopHere1/autonomous_blueberry_harvester">View on GitHub</a>
+          <a class="btn ghost" href="#toolkit">Explore the toolkit</a>
+          <a class="btn ghost" href="#cite">Cite</a>
+        </div>
+      </div>
+      <div aria-hidden="true">
+        <!-- Stylized annular reachable-shell (R–Z) schematic -->
+        <svg viewBox="0 0 320 260" width="100%" role="img" aria-label="Reachable workspace shell schematic">
+          <defs>
+            <linearGradient id="sh" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="var(--shell)" stop-opacity=".22"/>
+              <stop offset="1" stop-color="var(--shell)" stop-opacity=".05"/>
+            </linearGradient>
+          </defs>
+          <!-- annular shell -->
+          <path d="M40,230 A190,190 0 0,1 230,40 L230,80 A150,150 0 0,0 80,230 Z"
+                fill="url(#sh)" class="shell" stroke-width="2"/>
+          <!-- inner & outer arcs -->
+          <path d="M80,230 A150,150 0 0,1 230,80" fill="none" class="shell" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <path d="M40,230 A190,190 0 0,1 230,40" fill="none" class="shell" stroke-width="1.5"/>
+          <!-- base / pivot -->
+          <circle cx="40" cy="230" r="6" fill="var(--fg)"/>
+          <text x="48" y="248" font-size="11" fill="var(--muted)">shoulder pivot</text>
+          <!-- berries -->
+          <circle class="berry" cx="150" cy="120" r="6"/>
+          <circle class="berry" cx="168" cy="130" r="5"/>
+          <circle class="berry" cx="158" cy="108" r="4.5"/>
+          <text x="150" y="70" font-size="11" fill="var(--muted)">reachable shell</text>
+          <text x="235" y="150" font-size="11" fill="var(--muted)">r ≈ 937 mm</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n">6-DOF</div><div class="l">RRP arm + 3-DOF wrist (yaw · pitch · roll)</div></div>
+      <div class="stat"><div class="n">≈ 1440 L</div><div class="l">Reachable harvest-point volume</div></div>
+      <div class="stat"><div class="n">155°</div><div class="l">Azimuthal sweep · 270–1565 mm vertical</div></div>
+      <div class="stat"><div class="n">Force-aware</div><div class="l">Motor-current → contact-force grasping</div></div>
+    </div>
+  </div>
+</header>
+
+<section id="overview">
+  <div class="wrap">
+    <h2>Overview</h2>
+    <p class="sub">The platform closes the full harvest loop: a global camera scans the bush and
+      proposes cluster waypoints; the arm presents an in-hand camera for close-range visual
+      servoing; and a soft rolling gripper grasps and detaches the cluster while monitoring motor
+      current so it never crushes the fruit. All subsystems run from a single Python/Tkinter
+      control application.</p>
+    <div class="cards">
+      <div class="card"><span class="tag">Perceive</span><h3>Vision-guided targeting</h3>
+        <p>YOLO cluster detection on a global ZED camera, ArUco-anchored robot-base world frame,
+          and PCA cluster-orientation estimation feed 3-D harvest waypoints.</p></div>
+      <div class="card"><span class="tag">Reach</span><h3>6-DOF kinematics</h3>
+        <p>An RRP arm (pitch · yaw · prismatic) plus a 3-DOF gripper wrist, with analytic-seeded
+          numerical IK that solves both position and the radial approach orientation for grasping.</p></div>
+      <div class="card"><span class="tag">Grasp</span><h3>Force-aware rolling gripper</h3>
+        <p>Two grasp fingers and two rolling bands, controlled by Dynamixel present-current feedback
+          to clamp and detach clusters gently — the core research contribution.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="system">
+  <div class="wrap">
+    <h2>System at a glance</h2>
+    <p class="sub">Key hardware and software specifications, as configured in the control pipeline.</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Arm</th><td>6-DOF: RRP arm (arm-pitch, arm-yaw, prismatic) + wrist (yaw, pitch, roll).
+          Analytic-seeded bounded least-squares IK (position + approach orientation).</td></tr>
+        <tr><th>Global camera</th><td>Stereolabs ZED, HD1080 @ 30 fps, <code>DEPTH_MODE.ULTRA</code>;
+          ArUco markers establish the camera→robot-base extrinsic.</td></tr>
+        <tr><th>In-hand camera</th><td>Intel RealSense, 640×480 color + depth @ 30 fps, depth-to-color aligned,
+          used for close-range visual servoing.</td></tr>
+        <tr><th>Gripper</th><td>Rolling gripper: 2 grasp fingers + 2 rolling bands (Dynamixel XM series).
+          Contact sensed from present-current at ~3.36 mA/count.</td></tr>
+        <tr><th>Workspace</th><td>155° azimuthal sweep, 270–1565 mm above base, annular reachable shell with
+          analytic inner arc r ≈ 937 mm; ≈ 1440 L reachable harvest-point volume.</td></tr>
+        <tr><th>Software</th><td>Python + Tkinter GUI, NumPy/SciPy, OpenCV, Ultralytics YOLO,
+          pyzed &amp; pyrealsense2, Dynamixel SDK. Simulation mode needs no hardware.</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="workspace">
+  <div class="wrap">
+    <h2>Workspace feasibility</h2>
+    <p class="sub">Reaching a point is not enough — the arm must present the gripper in a usable pose.
+      The joint space is swept on a grid and each occupied voxel is labeled by its best inverse-kinematic
+      outcome, so the dexterous (grasp-ready) region is separated from merely position-reachable space.</p>
+    <div class="cards">
+      <div class="card"><h3 style="color:var(--shell)">A · Dexterous</h3>
+        <p>Reachable <em>with</em> the radial approach orientation required for grasping.</p></div>
+      <div class="card"><h3>B · Position only</h3>
+        <p>Reachable in position (within 5 mm) but not in the required orientation.</p></div>
+      <div class="card"><h3>C · Marginal</h3>
+        <p>Residual position error up to 20 mm — near the boundary of the shell.</p></div>
+    </div>
+    <p class="note">Category D — forward-kinematically reachable but with no valid inverse solution —
+      together with C is confined to the thin inner/outer boundaries of the annular shell, so the
+      interior of the workspace is fully dexterous.</p>
+  </div>
+</section>
+
+<section id="force">
+  <div class="wrap">
+    <h2>Current-based, force-aware grasping</h2>
+    <p class="sub">Delicate fruit bruises under low force. Rather than adding a tactile sensor, the gripper
+      infers contact force from Dynamixel motor current. This project takes that from binary
+      <em>contact detection</em> to calibrated, regulated <em>force control</em> — validated end to end.</p>
+    <div class="steps">
+      <div class="step"><div class="k">01 · MEASURE</div><h4>Ground-truth force</h4>
+        <p>Ramp closure / band command against a force sensor; log per-finger current vs. force,
+          up and down for hysteresis.</p></div>
+      <div class="step"><div class="k">02 · MODEL</div><h4>Current → force</h4>
+        <p>Fit F = m·I + b (and the hysteresis band); locate the current at a configurable
+          bruise-force threshold.</p></div>
+      <div class="step"><div class="k">03 · REGULATE</div><h4>Hold a gentle F*</h4>
+        <p>A model-based controller drives estimated clamp force to a target in Newtons, instead of
+          a raw current threshold.</p></div>
+      <div class="step"><div class="k">04 · COMPARE</div><h4>Bruise-risk metrics</h4>
+        <p>Overshoot, settling time and time-above-bruise vs. the existing threshold controller —
+          the fruit-quality KPIs.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="toolkit">
+  <div class="wrap">
+    <h2>Toolkit</h2>
+    <p class="sub">The main application plus focused experiment tools. All open a dark-theme UI and run in
+      simulation without hardware where noted.</p>
+    <div class="cards">
+      <div class="card"><span class="tag">GUI</span><h3>perception_pipeline.py</h3>
+        <p>The full perception + control application: cameras, kinematics, harvest state machine,
+          gripper controls. Simulation / perception / hardware modes.</p></div>
+      <div class="card"><span class="tag">Experiment</span><h3>position_accuracy_experiment.py</h3>
+        <p>Measures position-control accuracy from joint commands using a global camera and ArUco
+          markers on fixed references + the end-effector.</p></div>
+      <div class="card"><span class="tag">Experiment</span><h3>gripper_force_measurement.py</h3>
+        <p>Maps motor current → contact force for the grasp fingers and rolling bands, with a
+          pluggable force-sensor interface and hysteresis sweep.</p></div>
+      <div class="card"><span class="tag">Demo</span><h3>gripper_force_regulation_demo.py</h3>
+        <p>Closed-loop force regulation to a target Newton setpoint, benchmarked against the
+          current-threshold controller.</p></div>
+      <div class="card"><span class="tag">Control</span><h3>gripper_control.py</h3>
+        <p>Autonomous cluster harvesting driven by band- and grasp-servo current feedback, with
+          calibration and an anti-crush closure loop.</p></div>
+      <div class="card"><span class="tag">Analysis</span><h3>experiment_result/</h3>
+        <p>Force / current datasets across berry sizes (23–35 mm), finger vs. band, and current
+          offsets, plus workspace and detach-force analyses.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap">
+    <h2>Get started</h2>
+    <p class="sub">Python 3.10+. Hardware SDKs (pyzed, pyrealsense2, Dynamixel SDK) are optional —
+      the pipeline degrades gracefully to simulation.</p>
+<pre><span class="c"># clone</span>
+git clone https://github.com/StopHere1/autonomous_blueberry_harvester.git
+cd autonomous_blueberry_harvester
+
+<span class="c"># core dependencies</span>
+pip install numpy scipy opencv-python matplotlib pillow ultralytics pyserial
+
+<span class="c"># run the pipeline (no hardware needed)</span>
+python perception_pipeline.py --mode simulation --kinematics v2
+
+<span class="c"># experiment tools</span>
+python position_accuracy_experiment.py --robot simulation
+python gripper_force_measurement.py --port COM12
+python gripper_force_regulation_demo.py --port COM12</pre>
+    <p class="note">Hardware mode expects the Arduino stepper controller and Dynamixel U2D2 on their
+      serial ports (defaults <code>COM5</code> / <code>COM9</code>, gripper <code>COM12</code>) — all editable in the UI.</p>
+  </div>
+</section>
+
+<section id="repo">
+  <div class="wrap">
+    <h2>Repository structure</h2>
+    <ul class="repo">
+      <li><code>perception_pipeline.py</code><span>Main perception + control GUI (state machine, cameras, IK, gripper).</span></li>
+      <li><code>control/</code><span>Kinematics, robot parameters, Dynamixel drivers, trajectory planning, gripper package.</span></li>
+      <li><code>gripper_control.py</code><span>Current-feedback autonomous gripper controller + calibration.</span></li>
+      <li><code>training_script/</code><span>YOLO training / evaluation for blueberry detection &amp; segmentation.</span></li>
+      <li><code>experiment_result/</code><span>Force/current datasets, workspace and detach-force analyses.</span></li>
+      <li><code>global_perception/</code><span>Global-camera streaming, heatmap, cluster localization.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="cite">
+  <div class="wrap">
+    <h2>Citation</h2>
+    <p class="sub">If you use this work, please cite it. <span class="todo">Replace the placeholders below with
+      your paper's real title, authors, venue, and year.</span></p>
+<pre>@misc{blueberry_harvester,
+  title  = {<span class="todo">Autonomous Blueberry Harvesting with a Force-Aware Rolling Gripper</span>},
+  author = {<span class="todo">Author, A. and Coauthor, B.</span>},
+  year   = {<span class="todo">2026</span>},
+  note   = {https://github.com/StopHere1/autonomous_blueberry_harvester}
+}</pre>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Autonomous Blueberry Harvester · perception, 6-DOF control, and force-aware grasping.<br>
+      <span class="todo">TODO: add authors, lab/affiliation, paper/arXiv link, and a demo video.</span></p>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var btn = document.getElementById('themeBtn');
+    var root = document.documentElement;
+    function cur(){ return root.getAttribute('data-theme')
+      || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light'); }
+    btn.addEventListener('click', function(){
+      var next = cur()==='dark' ? 'light':'dark';
+      root.setAttribute('data-theme', next);
+    });
+  })();
+</script>
+</body>
+</html>
